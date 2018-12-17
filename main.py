@@ -86,8 +86,9 @@ if __name__ == "__main__":
     # region logging
     if LOGGING:
         # initialize logging
-        logFilename = "%s.log" % os.path.splitext(os.path.basename(__file__))[0]
-        logging.config.fileConfig("%s/logging.ini" % os.path.dirname(os.path.abspath(__file__)))
+        currentPath = os.path.dirname(os.path.abspath(__file__))
+        logFilename = "%s/%s.log" % (currentPath, os.path.splitext(os.path.basename(__file__))[0])
+        logging.config.fileConfig("%s/logging.ini" % currentPath)
         log = logging.getLogger()
         fileHandler = logging.handlers.TimedRotatingFileHandler(logFilename,'D',7,1)
         logLevel = logging.DEBUG if DEBUG else logging.INFO
