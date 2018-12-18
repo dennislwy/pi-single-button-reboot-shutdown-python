@@ -1,33 +1,40 @@
 import os
 import time
+import signal
 import logging.config
 import RPi.GPIO as GPIO
 from subprocess import call
 from lib.newold import NewOld
 
-# flags
+#=================== Configurations ===================
+# Debugging/logging flags
 DEBUG = False
 LOGGING = True
 
-# pin configuration
-gpioPin = 24 # GPIO pin number for input button
+# GPIO pin for button
+gpioPin = 24
 
-# intervals
-sampleSec = 0.25 # seconds (smaller value, higher cpu load)
-rebootSec = 1 # seconds (reboot if pressed longer or equal this seconds value)
-shutdownSec = 4 # seconds (shutdown if pressed longer or equal this seconds value)
+# timing intervals
+# check the state of button every X seconds
+sampleSec = 0.25 # seconds
+
+# reboot if pressed longer or equal this seconds value
+rebootSec = 1 # seconds
+
+# shutdown if pressed longer or equal this seconds value
+shutdownSec = 4 # seconds
+
+#======================================================
 
 def main():
     try:
         setupPin()
-
         pressedSince = time.time()
 
         btn = NewOld()
 
         while True:
-            # read GPIO btn
-            btn.Value = GPIO.input(gpioPin)
+            btn.Value = GPIO.input(gpioPin) # read GPIO state
 
             if btn.Changed: # button state changed
                 if btn.New == 1: # button pressed
@@ -39,17 +46,13 @@ def main():
 
                     if pressedDuration >= shutdownSec:
                         shutdown()
-                        terminate()
                     elif pressedDuration >= rebootSec:
                         reboot()
-                        terminate()
                     else:
                         if LOGGING: log.debug("No action")
 
             elif btn.New == 1 and time.time()-pressedSince >= shutdownSec: # button pressed and long hold
-                # shutdown
                 shutdown()
-                terminate()
 
             time.sleep(sampleSec)
 
@@ -73,8 +76,8 @@ def shutdown(delay=0):
     if LOGGING: log.info("Shutting down")
     call("sudo poweroff -h", shell=True)
 
-def terminate():
-    if LOGGING: log.info("Application terminated")
+def onTerminate(signum, frame):
+    if LOGGING: log.info("Application terminated (OS shutdown/reboot)")
 
 def setupPin():
     GPIO.setwarnings(False)
@@ -101,5 +104,9 @@ if __name__ == "__main__":
     if LOGGING: log.info("Starting application%s" % (' (DEBUG mode)' if DEBUG else ''))
     # endregion
 
+    # Python detect linux shutdown and run a command before shutting down
+    # credits to code_onkel
+    # https://stackoverflow.com/questions/39275948/python-detect-linux-shutdown-and-run-a-command-before-shutting-down
+    signal.signal(signal.SIGTERM, onTerminate)
+
     main()
-    terminate()
