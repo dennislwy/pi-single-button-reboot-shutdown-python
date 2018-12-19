@@ -78,6 +78,7 @@ def shutdown(delay=0):
 
 def onTerminate(signum, frame):
     if LOGGING: log.info("Application terminated (OS shutdown/reboot)")
+    exit(1)
 
 def setupPin():
     GPIO.setwarnings(False)
@@ -101,7 +102,7 @@ if __name__ == "__main__":
         log.addHandler(fileHandler)
 
     # starting service
-    if LOGGING: log.info("Starting application%s" % (' (DEBUG mode)' if DEBUG else ''))
+    if LOGGING: log.info("Starting Reboot/Shutdown Button Monitor%s" % (' (DEBUG mode)' if DEBUG else ''))
     # endregion
 
     # Python detect linux shutdown and run a command before shutting down
