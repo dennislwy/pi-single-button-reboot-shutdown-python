@@ -42,7 +42,7 @@ def main():
                     if LOGGING: log.info("Button pressed")
                 else: # button released
                     pressedDuration = time.time() - pressedSince
-                    if LOGGING: log.info("Button released after %s seconds" % pressedDuration)
+                    if LOGGING: log.info("Button released after %s seconds" % round(pressedDuration,1))
 
                     if pressedDuration >= shutdownSec:
                         shutdown()
